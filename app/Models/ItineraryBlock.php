@@ -25,6 +25,6 @@ class ItineraryBlock extends Model
     }
     public function fields()
     {
-        return $this->hasMany(BlockField::class, 'block_id');
+        return $this->hasMany(BlockField::class, 'itinerary_block_id');
     }
 }

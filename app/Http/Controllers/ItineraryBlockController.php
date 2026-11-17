@@ -88,6 +88,11 @@ class ItineraryBlockController extends Controller
                 ];
             })->values();
             $resData = $block->toArray();
+            $resData['template'] = [
+                'id' => $template->id,
+                'name' => $template->name,
+                'slug' => $template->slug
+            ];
             $resData['fields'] = $formattedFields;
 
             return response()->json([
@@ -101,28 +106,120 @@ class ItineraryBlockController extends Controller
                 'status' => 'error',
                 'message' => 'Server error',
                 'error' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(ItineraryBlock $itineraryBlock)
+    public function reorder(Request $request, string $slug)
     {
-        //
+        $check = $this->checkAccess($slug, $request->user());
+        if ($check['status'] !== 200) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $check['message']
+            ], $check['status']);
+        }
+        $data = Validator::make($request->all(), [
+            'blocks' => 'required|array',
+            'blocks.*' => 'required|integer|distinct|exists:itinerary_blocks,id',
+        ]);
+        if ($data->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid field',
+                'errors' => $data->errors()
+            ], 422);
+        }
+        DB::transaction(function () use ($request, $check) {
+            foreach ($request->blocks as $index => $blockId) {
+                ItineraryBlock::where('id', $blockId)->where('itinerary_id', $check['itinerary']->id)->update(['position' => $index + 1]);
+            }
+        });
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Blocks ordered successful'
+        ]);
     }
 
-    public function update(Request $request, ItineraryBlock $itineraryBlock)
+    public function update(Request $request, string $slug, string $blockId)
     {
-        //
+        $check = $this->checkAccess($slug, $request->user());
+        if ($check['status'] !== 200) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $check['message']
+            ], $check['status']);
+        }
+        $block = ItineraryBlock::where('id', $blockId)->where('itinerary_id', $check['itinerary']->id)->first();
+        if (!$block) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Block not found',
+            ], 404);
+        }
+        $data = Validator::make($request->all(), [
+            'fields' => 'required|array',
+            'fields.*.field_id' => 'required|integer|exists:block_field_values,id',
+            'fields.*.value' => 'nullable|string'
+        ]);
+        if ($data->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid field',
+                'errors' => $data->errors()
+            ], 422);
+        }
+        foreach ($request->fields as $fieldInput) {
+            BlockField::where('template_field_id', $fieldInput['field_id'])
+                ->where('itinerary_block_id', $block->id)
+                ->update(['value' => $fieldInput['value']]);
+        }
+        $block->load('fields.template');
+        $formattedFields = $block->fields->map(function ($fieldValue) {
+            return [
+                'id' => $fieldValue->template->id,
+                'name' => $fieldValue->template->name,
+                'slug' => $fieldValue->template->slug,
+                'type' => $fieldValue->template->type,
+                'value' => $fieldValue->value,
+            ];
+        })->values();
+        $resData = $block->unsetRelation('fields')->toArray();
+        $resData['fields'] = $formattedFields;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Block fields updated successful',
+            'data' => $resData
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ItineraryBlock $itineraryBlock)
+    public function destroy(Request $request, string $slug, string $blockId)
     {
-        //
+        $check = $this->checkAccess($slug, $request->user());
+        if ($check['status'] !== 200) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $check['message']
+            ], $check['status']);
+        }
+        $block = ItineraryBlock::where('id', $blockId)->where('itinerary_id', $check['itinerary']->id)->first();
+        if (!$block) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Block not found',
+            ], 404);
+        }
+        $block->delete();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Block removed successful'
+        ], 200);
     }
 }

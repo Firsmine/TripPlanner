@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class BlockField extends Model
 {
+    protected $table = 'block_field_values';
     protected $fillable = [
         'itinerary_block_id',
         'template_field_id',

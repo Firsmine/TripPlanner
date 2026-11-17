@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // itinerary blocks
     Route::post('itineraries/{slug}/blocks', [ItineraryBlockController::class, 'store']);
-    // Route::put('itineraries/{slug}', [ItineraryBlockController::class, 'update']);
-    // Route::put('itineraries/{slug}', [ItineraryBlockController::class, 'reorder']);
-    // Route::delete('itineraries/{slug}', [ItineraryBlockController::class, 'destroy']);
+    Route::put('itineraries/{slug}/blocks/{blockId}/fields', [ItineraryBlockController::class, 'update']);
+    Route::put('itineraries/{slug}/blocks/reorder', [ItineraryBlockController::class, 'reorder']);
+    Route::delete('itineraries/{slug}/blocks/{blockId}', [ItineraryBlockController::class, 'destroy']);
 });
