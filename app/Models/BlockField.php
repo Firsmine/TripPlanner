@@ -11,11 +11,15 @@ class BlockField extends Model
         'template_field_id',
         'value'
     ];
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
     public function itineraryBlock()
     {
         return $this->belongsTo(ItineraryBlock::class, 'itinerary_block_id');
     }
-    public function templateField()
+    public function template()
     {
         return $this->belongsTo(TemplateField::class, 'template_field_id');
     }

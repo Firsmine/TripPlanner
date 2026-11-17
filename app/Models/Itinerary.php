@@ -8,17 +8,17 @@ use PhpParser\Node\Stmt\Block;
 class Itinerary extends Model
 {
     protected $fillable = [
+        'user_id',
         'title',
-        'summary',
         'slug',
-        'user_id'
+        'summary',
     ];
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    public function block()
+    public function blocks()
     {
-        return $this->hasMany(Block::class, 'itinerary_id');
+        return $this->hasMany(ItineraryBlock::class, 'itinerary_id');
     }
 }

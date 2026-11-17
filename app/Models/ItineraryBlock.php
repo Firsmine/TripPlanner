@@ -11,6 +11,10 @@ class ItineraryBlock extends Model
         'template_id',
         'position',
     ];
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
     public function itinerary()
     {
         return $this->belongsTo(Itinerary::class, 'itinerary_id');
@@ -19,7 +23,7 @@ class ItineraryBlock extends Model
     {
         return $this->belongsTo(Template::class, 'template_id');
     }
-    public function blockField()
+    public function fields()
     {
         return $this->hasMany(BlockField::class, 'block_id');
     }
