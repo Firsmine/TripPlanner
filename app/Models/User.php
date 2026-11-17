@@ -25,6 +25,11 @@ class User extends Authenticatable
         'password'
     ];
 
+    public function itinerary()
+    {
+        return $this->hasMany(Itinerary::class, 'user_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
