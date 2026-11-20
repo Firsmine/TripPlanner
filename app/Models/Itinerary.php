@@ -19,6 +19,6 @@ class Itinerary extends Model
     }
     public function blocks()
     {
-        return $this->hasMany(ItineraryBlock::class, 'itinerary_id');
+        return $this->hasMany(ItineraryBlock::class, 'itinerary_id')->orderBy('position', 'asc');
     }
 }

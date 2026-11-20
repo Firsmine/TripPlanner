@@ -13,7 +13,7 @@ class ItineraryController extends Controller
      */
     public function index(Request $request)
     {
-        $itinerary = $request->user()->itinerary()->get();
+        $itinerary = auth()->user()->itinerary()->latest()->get();
         return response()->json([
             'status' => 'success',
             'message' => 'get all itineraries successful',
@@ -35,7 +35,7 @@ class ItineraryController extends Controller
                 'errors' => $data->errors()
             ], 422);
         }
-        $itinerary = $request->user()->itinerary()->create($data->validated());
+        $itinerary = auth()->user()->itinerary()->create($data->validated());
         return response()->json([
             'status' => 'success',
             'message' => 'Itinerary created successful',
@@ -61,7 +61,7 @@ class ItineraryController extends Controller
         $data = Validator::make($request->all(), [
             'title' => 'sometimes|string',
             'slug' => 'sometimes|string|unique:itineraries,slug|regex:/^[a-z-0-9-]+$/',
-            'summary' => 'sometimes|string',
+            'summary' => 'nullable|string',
         ]);
         if ($data->fails()) {
             return response()->json([

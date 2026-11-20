@@ -162,7 +162,7 @@ class ItineraryBlockController extends Controller
         }
         $data = Validator::make($request->all(), [
             'fields' => 'required|array',
-            'fields.*.field_id' => 'required|integer|exists:block_field_values,id',
+            'fields.*.field_id' => 'required|integer|exists:template_fields,id',
             'fields.*.value' => 'nullable|string'
         ]);
         if ($data->fails()) {
