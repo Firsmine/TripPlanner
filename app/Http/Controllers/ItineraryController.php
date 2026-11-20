@@ -48,7 +48,29 @@ class ItineraryController extends Controller
      */
     public function show(Request $request, string $slug)
     {
-        $itinerary = $request->user()->itinerary()->with('blocks.template.fields')->where('slug', $slug)->first();
+        $itinerary = $request->user()->itinerary()
+            ->with([
+                'blocks.template.fields',
+                'blocks.fields.template'
+            ])->where('slug', $slug)->first();
+        if (!$itinerary) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Itinerary not found'
+            ], 404);
+        }
+        $itinerary->blocks->transform(function ($block) {
+            $formattedFields = $block->fields->map(function ($fieldValue) {
+                return [
+                    'id' => $fieldValue->template->id,
+                    'name' => $fieldValue->template->name,
+                    'type' => $fieldValue->template->type,
+                    'value' => $fieldValue->value,
+                ];
+            })->values();
+            $block->setRelation('fields', $formattedFields);
+            return $block;
+        });
         return response()->json([
             'status' => 'success',
             'message' => 'Get itinerary successful',
